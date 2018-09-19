@@ -1,11 +1,16 @@
-<<template>
+<template>
   <v-container fluid>
     <v-layout row wrap>
+      <v-flex>
+        <v-alert type="error" dismissible v-model="alert">
+          {{ error }}
+        </v-alert>
+      </v-flex>
       <v-flex xs12 class="text-xs-center" mt-5>
         <h1>Sign Up</h1>
       </v-flex>
       <v-flex xs12 sm6 offset-sm3 mt-3>
-        <form>
+        <form v-on:submit.prevent="register">
           <v-layout column>
             <v-flex>
               <v-text-field
@@ -37,7 +42,7 @@
                 ></v-text-field>
             </v-flex>
             <v-flex class="text-xs-center" mt-5>
-              <v-btn color="primary" type="submit">Sign Up</v-btn>
+              <v-btn color="primary" type="submit" :disabled="loading">Sign Up</v-btn>
             </v-flex>
           </v-layout>
         </form>
@@ -47,7 +52,6 @@
 </template>
 
 <script>
-import auth from '@/services/authentication';
 export default {
   name: 'Login',
   data() {
@@ -55,26 +59,42 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
-      error: '',
-    }
+      alert: false,
+      err: '',
+    };
   },
   computed: {
     comparePasswords () {
-      return this.password === this.confirmPassword || 'Password dont match'
+      return this.password === this.confirmPassword || 'Password dont match';
+    },
+    error () {
+      return this.$store.state.error;
+    },
+    loading () {
+      return this.$store.state.loading;
     }
   },
   methods: {
-    async register() {
-      try {
-        const {token} =
-        await auth.register({email: this.currentEmail, password: this.currentPassword})
-      } catch (err) {
-        console.log('err', err.response.data.message);
-        this.error = err.response.data.message;
-      }
+    register() {
+         if (this.comparePasswords !== true) {
+             return;
+          }
+        return this.$store.dispatch('userSignUp', { email: this.email, password: this.password });
+    }
+  },
+  watch: {
+    error (value) {
+    if (value) {
+      this.alert = true
+    }
+  },
+  alert (value) {
+    if (!value) {
+      this.$store.commit('setError', null)
     }
   }
-}
+  }
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

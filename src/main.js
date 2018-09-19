@@ -11,5 +11,10 @@ Vue.use(Vuetify);
 new Vue({
   router,
   store,
-  render: h => h(App)
+  render: h => h(App),
+  created () {
+    if (localStorage.getItem('useremail')) {
+      store.dispatch('autoSignIn');
+    }
+  }
 }).$mount('#app');

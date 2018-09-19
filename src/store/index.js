@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import router from '@/router';
+import auth from '@/services/authentication';
 
 Vue.use(Vuex);
 
@@ -21,6 +23,53 @@ export const store = new Vuex.Store({
       state.loading = payload;
     }
   },
-  actions: {},
-  getters: {}
+  actions: {
+    userSignUp ({commit}, payload) {
+      commit('setLoading', true);
+      auth.register({email: payload.email, password: payload.password})
+      .then(response => {
+       commit('setUser', {email: response.data.email, token: response.data.token});
+       commit('setLoading', false);
+       commit('setError', null);
+       localStorage.setItem("useremail", response.data.email);
+       localStorage.setItem("usertoken", response.data.token); 
+       router.push('/home');
+      })
+      .catch(error => {
+       commit('setError', error.response.data.message);
+       commit('setLoading', false);
+      });
+    },
+    userSignIn ({commit}, payload) {
+      commit('setLoading', true);
+      auth.login({email: payload.email, password: payload.password})
+      .then(response => {
+      commit('setUser', {email: response.data.email, token: response.data.token});
+      commit('setLoading', false);
+      commit('setError', null);
+      localStorage.setItem("useremail", response.data.email);
+      localStorage.setItem("usertoken", response.data.token);
+      router.push('/home');
+      })
+      .catch(error => {
+      commit('setError', error.response.data.message);
+      commit('setLoading', false);
+      });
+    },
+    autoSignIn ({commit}) {
+      commit('setUser', {email: localStorage.getItem('useremail'), token: localStorage.getItem('usertoken')});
+    },
+    userSignOut ({commit}) {
+      // Call backned logout
+      localStorage.removeItem('useremail');
+      localStorage.removeItem('usertoken');
+      commit('setUser', null);
+      router.push('/');
+    }
+  },  
+  getters: {
+    isAuthenticated (state) {
+      return state.user !== null && state.user !== undefined;
+    }
+  }
 });
