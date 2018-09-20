@@ -8,8 +8,13 @@ function login({email, password}) {
   return request().post('users/login', {email, password});
 }
 
+function logout() {
+  return request().delete('users/logout');
+}
+
 
 export default {
   register,
-  login
+  login,
+  logout
 };
